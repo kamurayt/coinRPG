@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Gold Kingdom</title>
+<style>
+:root {
+  --bg:#0a0a12; --panel:#13131f; --panel2:#1a1a2e;
+  --border:#2a2a40; --gold:#f5c842; --gold2:#e8a020;
+  --gem:#a855f7; --gem2:#7c3aed; --green:#22c55e;
+  --red:#ef4444; --blue:#3b82f6; --auto:#06b6d4;
+  --text:#e8e8f0; --muted:#6b6b8a;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Segoe UI',sans-serif;min-height:100vh;overflow-x:hidden;padding-bottom:60px;}
+
+/* HEADER */
+#header{background:var(--panel);border-bottom:1px solid var(--border);padding:8px 12px;position:sticky;top:0;z-index:100;}
+#header-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+#header h1{font-size:16px;color:var(--gold);letter-spacing:1px;}
+#res-bar{display:flex;gap:10px;}
+.res{font-size:13px;font-weight:bold;}
+.res.gold{color:var(--gold);}
+.res.gem{color:var(--gem);}
+#stage-bar{font-size:11px;color:var(--muted);}
+#stage-bar span{color:var(--text);}
+
+/* PRESTIGE STRIP */
+#prestige-strip{background:linear-gradient(90deg,#1a1030,#0a0a12);border-bottom:1px solid var(--gem2);padding:4px 12px;font-size:11px;color:var(--gem);display:flex;justify-content:space-between;}
+
+/* TABS */
+#tabs{display:flex;background:var(--panel);border-bottom:1px solid var(--border);position:sticky;top:65px;z-index:99;}
+.tab{flex:1;text-align:center;padding:9px 2px;font-size:11px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+
+/* PAGES */
+.page{display:none;padding:10px;}
+.page.active{display:block;}
+
+/* SECTION TITLE */
+.sec-title{font-size:12px;color:var(--muted);margin:10px 0 6px;text-transform:uppercase;letter-spacing:1px;}
+
+/* TAP */
+#tap-zone{text-align:center;padding:12px 0 8px;}
+#tap-btn{width:100px;height:100px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#f5c842,#b8860b);border:3px solid var(--gold2);font-size:36px;cursor:pointer;box-shadow:0 0 20px rgba(245,200,66,.4);display:inline-block;line-height:94px;user-select:none;-webkit-tap-highlight-color:transparent;transition:transform .08s;}
+#tap-btn:active{transform:scale(.92);}
+#tap-info{margin-top:6px;color:var(--muted);font-size:12px;}
+#tap-info span{color:var(--gold);font-weight:bold;}
+
+/* BUFF */
+#buff-bar{background:rgba(245,200,66,.08);border:1px solid var(--gold2);border-radius:8px;padding:7px 10px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:12px;}
+#buff-bar.hidden{display:none;}
+
+/* AD BTNS */
+.ad-btn{background:var(--panel2);border:1px solid var(--gold2);color:var(--gold);border-radius:8px;padding:9px 12px;font-size:12px;cursor:pointer;width:100%;margin-bottom:7px;display:flex;justify-content:space-between;align-items:center;}
+.ad-btn .reward{color:var(--gem);font-weight:bold;}
+
+/* FACILITY */
+.facility{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:8px;}
+.fac-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.fac-name{font-size:13px;font-weight:bold;}
+.fac-lv{font-size:11px;color:var(--auto);font-weight:bold;}
+.auto-badge{font-size:10px;background:var(--auto);color:#000;border-radius:3px;padding:1px 5px;font-weight:bold;display:none;}
+.fac-desc{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.prog-bar{height:5px;background:var(--border);border-radius:3px;margin-bottom:7px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--gold);border-radius:3px;transition:width .1s linear;}
+.fac-btns{display:flex;gap:6px;}
+.collect-btn{flex:2;background:var(--gold2);color:#000;border:none;border-radius:6px;padding:6px 0;font-size:12px;font-weight:bold;cursor:pointer;}
+.collect-btn:disabled{background:var(--border);color:var(--muted);cursor:default;}
+.lv-btn{flex:2;background:var(--panel2);border:1px solid var(--green);color:var(--green);border-radius:6px;padding:6px 4px;font-size:11px;cursor:pointer;}
+.lv-btn:disabled{border-color:var(--border);color:var(--muted);cursor:default;}
+.auto-btn{flex:2;background:linear-gradient(135deg,var(--gem2),var(--gem));color:#fff;border:none;border-radius:6px;padding:6px 4px;font-size:11px;font-weight:bold;cursor:pointer;}
+.auto-btn.owned{background:var(--auto);color:#000;cursor:default;}
+
+/* BATTLE */
+#battle-zone{background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:10px;}
+.stage-title{font-size:14px;font-weight:bold;color:var(--gold);margin-bottom:8px;text-align:center;}
+.enemy-zone{text-align:center;margin-bottom:8px;}
+.enemy-icon{font-size:40px;}
+.enemy-name{font-size:12px;color:var(--muted);margin-top:2px;}
+.hp-bar-wrap{margin:4px 0;}
+.hp-label{font-size:11px;color:var(--muted);margin-bottom:2px;display:flex;justify-content:space-between;}
+.hp-bar{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.hp-fill{height:100%;background:var(--green);border-radius:4px;transition:width .15s;}
+.hp-fill.enemy{background:var(--red);}
+.battle-log{font-size:11px;color:var(--muted);min-height:32px;background:var(--bg);border-radius:6px;padding:6px 8px;margin:6px 0;}
+.battle-btns{display:flex;gap:8px;}
+.battle-btn{flex:1;border:none;border-radius:8px;padding:9px 0;font-size:13px;font-weight:bold;cursor:pointer;}
+#start-btn{background:var(--green);color:#000;}
+#start-btn.fighting{background:var(--red);color:#fff;}
+#next-btn{background:var(--blue);color:#fff;display:none;}
+
+/* PARTY */
+.party-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;}
+.party-slot{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;font-size:10px;}
+.party-slot.filled{border-color:var(--gold2);}
+.party-slot .slot-icon{font-size:22px;margin-bottom:2px;}
+.party-slot .slot-name{color:var(--muted);font-size:10px;}
+
+/* CHARS */
+.char-card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:7px;display:flex;align-items:center;gap:8px;}
+.char-icon{font-size:26px;}
+.char-info{flex:1;}
+.char-name{font-size:13px;font-weight:bold;margin-bottom:2px;}
+.char-stats{font-size:11px;color:var(--muted);}
+.char-stats span{color:var(--text);}
+.upgrade-btn{background:linear-gradient(135deg,#1a3a1a,#22c55e22);border:1px solid var(--green);color:var(--green);border-radius:6px;padding:6px 8px;font-size:11px;cursor:pointer;white-space:nowrap;}
+.upgrade-btn:disabled{border-color:var(--border);color:var(--muted);cursor:default;}
+
+/* GACHA */
+.gacha-box{background:linear-gradient(135deg,#1a0a2e,#0a0a1e);border:2px solid var(--gem2);border-radius:12px;padding:14px;margin-bottom:10px;text-align:center;}
+.gacha-box h3{color:var(--gem);margin-bottom:4px;font-size:15px;}
+.gacha-cost{color:var(--muted);font-size:12px;margin-bottom:10px;}
+.gacha-btns{display:flex;gap:8px;}
+.gacha-btn{flex:1;background:linear-gradient(135deg,var(--gem2),var(--gem));color:#fff;border:none;border-radius:8px;padding:10px 0;font-size:13px;font-weight:bold;cursor:pointer;}
+#gacha-result{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px;display:none;}
+#gacha-result h4{color:var(--gem);margin-bottom:6px;font-size:13px;}
+.result-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.result-item:last-child{border-bottom:none;}
+.r1{color:#9ca3af;} .r2{color:#60a5fa;} .r3{color:var(--gold);} .r4{color:var(--gem);}
+
+/* PRESTIGE */
+.prestige-card{background:linear-gradient(135deg,#1a0a2e,#0a0a1e);border:2px solid var(--gem2);border-radius:12px;padding:18px;margin-bottom:12px;text-align:center;}
+.prestige-card h2{color:var(--gem);font-size:18px;margin-bottom:6px;}
+.prestige-card p{color:var(--muted);font-size:12px;line-height:1.7;margin-bottom:10px;}
+.prestige-bonus{color:var(--gold);font-weight:bold;font-size:17px;margin:6px 0;}
+#prestige-btn{background:linear-gradient(135deg,var(--gem2),var(--gem));color:#fff;border:none;border-radius:10px;padding:12px 36px;font-size:15px;font-weight:bold;cursor:pointer;}
+#prestige-btn:disabled{background:var(--border);color:var(--muted);cursor:default;}
+.cond-item{font-size:12px;padding:4px 0;display:flex;justify-content:space-between;}
+.cond-ok{color:var(--green);}
+.cond-ng{color:var(--red);}
+
+/* MODAL */
+#modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:center;justify-content:center;}
+#modal-overlay.show{display:flex;}
+#modal{background:var(--panel);border:1px solid var(--gem2);border-radius:14px;padding:22px;width:88%;max-width:340px;text-align:center;}
+#modal h3{color:var(--gem);font-size:17px;margin-bottom:8px;}
+#modal p{color:var(--muted);font-size:12px;margin-bottom:14px;line-height:1.7;white-space:pre-line;}
+.modal-btns{display:flex;gap:8px;justify-content:center;}
+#modal-ok{background:var(--gold2);color:#000;border:none;border-radius:8px;padding:9px 28px;font-size:14px;font-weight:bold;cursor:pointer;}
+#modal-cancel{background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:8px;padding:9px 20px;font-size:14px;cursor:pointer;}
+
+/* FLOAT */
+.float-text{position:fixed;font-size:13px;font-weight:bold;color:var(--gold);pointer-events:none;z-index:999;animation:floatUp .9s ease-out forwards;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-55px);}}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div id="header-top">
+    <h1>👑 Gold Kingdom</h1>
+    <div id="res-bar">
+      <span class="res gold">🪙 <span id="disp-gold">0</span></span>
+      <span class="res gem">💎 <span id="disp-gem">0</span></span>
+    </div>
+  </div>
+  <div id="stage-bar">ステージ <span id="disp-stage">1</span> / 最高: <span id="disp-maxstage">0</span> | 転生ボーナス <span id="disp-mult">×1.0</span></div>
+</div>
+
+<div id="prestige-strip">
+  <span>転生回数: <span id="disp-prestige">0</span>回</span>
+  <span id="prestige-unlock-hint">Stage30クリアで転生解禁</span>
+</div>
+
+<div id="tabs">
+  <div class="tab active" onclick="switchTab('tap')">🏠タップ</div>
+  <div class="tab" onclick="switchTab('facility')">🏭施設</div>
+  <div class="tab" onclick="switchTab('battle')">⚔️バトル</div>
+  <div class="tab" onclick="switchTab('chars')">👥キャラ</div>
+  <div class="tab" onclick="switchTab('gacha')">🎰ガチャ</div>
+  <div class="tab" onclick="switchTab('prestige')">✨転生</div>
+</div>
+
+<!-- TAP PAGE -->
+<div id="page-tap" class="page active">
+  <div id="buff-bar" class="hidden">⚡ ×2倍バフ中！ <span id="buff-timer">00:00</span></div>
+  <div id="tap-zone">
+    <div id="tap-btn">🪙</div>
+    <div id="tap-info">タップで <span id="disp-tappower">1</span> ゴールド</div>
+  </div>
+  <button class="ad-btn" onclick="watchAd('buff')">
+    <span>📺 広告を見て ×2倍バフ（30分）</span><span class="reward">無料</span>
+  </button>
+  <button class="ad-btn" onclick="watchAd('gems')">
+    <span>📺 広告を見てジェム獲得</span><span class="reward">💎+10</span>
+  </button>
+</div>
+
+<!-- FACILITY PAGE -->
+<div id="page-facility" class="page">
+  <div id="facility-list"></div>
+</div>
+
+<!-- BATTLE PAGE -->
+<div id="page-battle" class="page">
+  <div id="battle-zone">
+    <div class="stage-title">⚔️ ステージ <span id="b-stage">1</span></div>
+    <div class="enemy-zone">
+      <div class="enemy-icon" id="enemy-icon">👹</div>
+      <div class="enemy-name" id="enemy-name">ゴブリン Lv1</div>
+      <div class="hp-bar-wrap">
+        <div class="hp-label"><span>敵HP</span><span id="enemy-hp-text">10/10</span></div>
+        <div class="hp-bar"><div class="hp-fill enemy" id="enemy-hp-fill" style="width:100%"></div></div>
+      </div>
+    </div>
+    <div class="hp-bar-wrap">
+      <div class="hp-label"><span>味方HP</span><span id="ally-hp-text">100/100</span></div>
+      <div class="hp-bar"><div class="hp-fill" id="ally-hp-fill" style="width:100%"></div></div>
+    </div>
+    <div class="battle-log" id="battle-log">パーティを編成してバトルを開始しよう！</div>
+    <div class="battle-btns">
+      <button class="battle-btn" id="start-btn" onclick="toggleBattle()">▶ 開始</button>
+      <button class="battle-btn" id="next-btn" onclick="nextStage()">次のステージ ▶</button>
+    </div>
+  </div>
+
+  <div class="sec-title">パーティ編成（最大3人）</div>
+  <div class="party-grid" id="party-grid"></div>
+
+  <div class="sec-title">編成可能キャラ</div>
+  <div id="party-select-list"></div>
+</div>
+
+<!-- CHARS PAGE -->
+<div id="page-chars" class="page">
+  <div class="sec-title">主人公</div>
+  <div id="hero-card"></div>
+  <div class="sec-title">所持キャラ</div>
+  <div id="char-list"></div>
+</div>
+
+<!-- GACHA PAGE -->
+<div id="page-gacha" class="page">
+  <div class="gacha-box">
+    <h3>🎰 キャラガチャ</h3>
+    <div class="gacha-cost">1回: 🪙500 ／ 10連: 🪙4,500</div>
+    <div class="gacha-btns">
+      <button class="gacha-btn" onclick="doGacha(1)">1回引く</button>
+      <button class="gacha-btn" onclick="doGacha(10)">10連</button>
+    </div>
+  </div>
+  <div id="gacha-result"></div>
+  <div id="gacha-char-list"></div>
+</div>
+
+<!-- PRESTIGE PAGE -->
+<div id="prestige-page" class="page">
+  <div class="prestige-card">
+    <h2>✨ 転生</h2>
+    <p>全ゴールド・施設Lv・ステージをリセット。<br>施設の自動化は<b style="color:var(--auto)">永続引き継ぎ</b>。<br>キャラ・主人公の強化も<b style="color:var(--gold)">引き継ぎ</b>。</p>
+    <div class="prestige-bonus" id="prestige-bonus-text">次の転生ボーナス: ×1.2</div>
+    <div style="margin-bottom:12px">
+      <div class="cond-item"><span>ステージ30クリア</span><span id="cond-stage" class="cond-ng">✗ 未達成</span></div>
+    </div>
+    <button id="prestige-btn" onclick="doPrestige()" disabled>転生する</button>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h3 id="modal-title"></h3>
+    <p id="modal-body"></p>
+    <div class="modal-btns">
+      <button id="modal-cancel" onclick="closeModal(false)" style="display:none">キャンセル</button>
+      <button id="modal-ok" onclick="closeModal(true)">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const FACILITIES = [
+  {id:0,name:'🌾 農場',  desc:'農作物',cost:50,   income:5,   ivl:4, autoCost:30 },
+  {id:1,name:'⛏️ 鉱山', desc:'鉱石',  cost:200,  income:20,  ivl:6, autoCost:50 },
+  {id:2,name:'🎣 漁港',  desc:'魚',    cost:600,  income:60,  ivl:8, autoCost:80 },
+  {id:3,name:'🏪 商店',  desc:'交易品',cost:2000, income:200, ivl:10,autoCost:120},
+  {id:4,name:'🏭 工場',  desc:'製品',  cost:8000, income:800, ivl:12,autoCost:180},
+  {id:5,name:'🏰 城塞',  desc:'税収',  cost:30000,income:3000,ivl:15,autoCost:250},
+  {id:6,name:'🚀 宇宙港',desc:'銀河交易',cost:150000,income:15000,ivl:18,autoCost:400},
+];
+
+const CHARS_DB = [
+  {id:0, name:'村娘アリア',  icon:'👧',rarity:1,baseAtk:8, baseHp:80, effect:'全収益+5%', type:'global',val:0.05},
+  {id:1, name:'弓使いレン',  icon:'🏹',rarity:1,baseAtk:12,baseHp:70, effect:'タップ+10%',type:'tap',  val:0.10},
+  {id:2, name:'盗賊カイン',  icon:'🗡️',rarity:2,baseAtk:20,baseHp:90, effect:'全収益+12%',type:'global',val:0.12},
+  {id:3, name:'魔法使いミラ',icon:'🧙',rarity:2,baseAtk:30,baseHp:60, effect:'全収益+15%',type:'global',val:0.15},
+  {id:4, name:'森の妖精',    icon:'🧚',rarity:2,baseAtk:18,baseHp:100,effect:'タップ+20%',type:'tap',  val:0.20},
+  {id:5, name:'騎士団長',    icon:'🤺',rarity:3,baseAtk:45,baseHp:150,effect:'全収益+25%',type:'global',val:0.25},
+  {id:6, name:'錬金術師',    icon:'⚗️',rarity:3,baseAtk:35,baseHp:110,effect:'ジェムdrop+1',type:'gemtap',val:0.01},
+  {id:7, name:'海賊女王',    icon:'🏴‍☠️',rarity:3,baseAtk:55,baseHp:130,effect:'全収益+30%',type:'global',val:0.30},
+  {id:8, name:'龍騎士ドラン',icon:'🐉',rarity:4,baseAtk:90,baseHp:200,effect:'全収益+50%',type:'global',val:0.50},
+  {id:9, name:'天界の女神',  icon:'👼',rarity:4,baseAtk:80,baseHp:250,effect:'全収益×2',  type:'globalX',val:2.0},
+];
+
+const ENEMIES = [
+  {name:'ゴブリン',icon:'👺'},{name:'スライム',icon:'🟢'},{name:'コウモリ',icon:'🦇'},
+  {name:'スケルトン',icon:'💀'},{name:'オーク',icon:'👹'},{name:'ウルフ',icon:'🐺'},
+  {name:'トロル',icon:'🧌'},{name:'ゾンビ',icon:'🧟'},{name:'ハーピー',icon:'🦅'},
+  {name:'ワイバーン',icon:'🦎'},{name:'ゴーレム',icon:'🪨'},{name:'ドラゴン',icon:'🐲'},
+];
+
+const RARITY_LABEL = ['','★','★★','★★★','★★★★'];
+const RARITY_CLASS = ['','r1','r2','r3','r4'];
+const GACHA_RATES = [{r:1,rate:55},{r:2,rate:30},{r:3,rate:13},{r:4,rate:2}];
+const PRESTIGE_MIN_STAGE = 30;
+
+// ==================== STATE ====================
+let S = {
+  gold:0, gems:0, totalGold:0,
+  prestigeCount:0, prestigeMult:1.0,
+  maxStage:0, currentStage:1,
+  buffEnd:0, adCD:{},
+  facilities: FACILITIES.map(()=>({lv:1,prog:0,auto:false})),
+  hero:{lv:1,atk:15,hp:120,upgCost:100},
+  chars:[],      // {id, count, lv, upgCost}
+  party:[null,null,null], // char id or 'hero'
+};
+
+function load(){
+  try{const s=localStorage.getItem('gk2');if(s)Object.assign(S,JSON.parse(s));}catch(e){}
+}
+function save(){
+  try{localStorage.setItem('gk2',JSON.stringify(S));}catch(e){}
+}
+
+// ==================== COMPUTED ====================
+function tapPower(){
+  let b=S.hero.atk;
+  S.chars.forEach(c=>{
+    const db=CHARS_DB[c.id];
+    if(db.type==='tap') b*=(1+db.val*c.count);
+  });
+  return Math.max(1,Math.floor(b*S.prestigeMult));
+}
+
+function globalMult(){
+  let m=S.prestigeMult;
+  S.chars.forEach(c=>{
+    const db=CHARS_DB[c.id];
+    if(db.type==='global') m*=(1+db.val*c.count);
+    if(db.type==='globalX') m*=Math.pow(db.val,c.count);
+  });
+  return m;
+}
+
+function buffMult(){ return Date.now()<S.buffEnd?2:1; }
+
+function facIncome(i){
+  const f=FACILITIES[i];
+  const fs=S.facilities[i];
+  return Math.floor(f.income*Math.pow(1.3,fs.lv-1)*globalMult()*buffMult());
+}
+
+function facLvCost(i){
+  return Math.floor(FACILITIES[i].cost*Math.pow(1.8,S.facilities[i].lv));
+}
+
+// ==================== GOLD ====================
+function addGold(n){S.gold+=n;S.totalGold+=n;}
+
+// ==================== TAP ====================
+document.getElementById('tap-btn').addEventListener('click',e=>{
+  const p=tapPower()*buffMult();
+  addGold(p);
+  S.chars.forEach(c=>{
+    if(CHARS_DB[c.id].type==='gemtap'&&Math.random()<CHARS_DB[c.id].val*c.count){
+      S.gems++;
+      showFloat(e.clientX,e.clientY-20,'+1💎','#a855f7');
+    }
+  });
+  showFloat(e.clientX,e.clientY,`+${fmt(p)}🪙`);
+  updateUI();
+});
+
+// ==================== ADS ====================
+function watchAd(type){
+  const now=Date.now();
+  const cd=S.adCD[type]||0;
+  if(now<cd){
+    showModal('クールダウン中',`あと${Math.ceil((cd-now)/60000)}分後に視聴できます。`);
+    return;
+  }
+  const msgs={
+    buff:'ここで動画広告が流れます。\n×2倍バフ 30分 を付与します！',
+    gems:'ここで動画広告が流れます。\nジェム +10 を付与します！',
+  };
+  showModal('広告視聴（デモ）',msgs[type],ok=>{
+    if(!ok)return;
+    if(type==='buff'){S.buffEnd=Date.now()+30*60*1000;S.adCD.buff=Date.now()+5*60*1000;}
+    if(type==='gems'){S.gems+=10;S.adCD.gems=Date.now()+3*60*1000;}
+    updateUI();
+  },true);
+}
+
+// ==================== FACILITY ====================
+function buildFacilities(){
+  const el=document.getElementById('facility-list');
+  el.innerHTML='';
+  FACILITIES.forEach((f,i)=>{
+    const div=document.createElement('div');
+    div.className='facility';
+    div.id=`fac${i}`;
+    div.innerHTML=`
+      <div class="fac-header">
+        <span class="fac-name">${f.name}</span>
+        <span class="fac-lv" id="fac-lv${i}">Lv1</span>
+        <span class="auto-badge" id="fac-auto${i}">AUTO</span>
+      </div>
+      <div class="fac-desc" id="fac-desc${i}">${f.desc} | 収益: 0</div>
+      <div class="prog-bar"><div class="prog-fill" id="fac-prog${i}" style="width:0%"></div></div>
+      <div class="fac-btns">
+        <button class="collect-btn" id="fac-col${i}" onclick="collectFac(${i})" disabled>収穫</button>
+        <button class="lv-btn" id="fac-lvbtn${i}" onclick="upgradeFac(${i})">Lvアップ</button>
+        <button class="auto-btn" id="fac-autobtn${i}" onclick="buyAuto(${i})">自動化</button>
+      </div>`;
+    el.appendChild(div);
+  });
+  updateFacUI();
+}
+
+function collectFac(i){
+  if(S.facilities[i].prog<1)return;
+  const earned=facIncome(i);
+  addGold(earned);
+  S.facilities[i].prog=0;
+  showFloat(window.innerWidth/2,200,`+${fmt(earned)}🪙`);
+  updateUI();
+}
+
+function upgradeFac(i){
+  const cost=facLvCost(i);
+  if(S.gold<cost){showModal('ゴールド不足',`🪙${fmt(cost)}必要です。`);return;}
+  showModal('施設強化',`${FACILITIES[i].name} を Lv${S.facilities[i].lv+1} に強化\n🪙${fmt(cost)} 消費\n収益 ×1.3 アップ！`,ok=>{
+    if(!ok)return;
+    S.gold-=cost;
+    S.facilities[i].lv++;
+    updateUI();
+  },true);
+}
+
+function buyAuto(i){
+  const fs=S.facilities[i];
+  if(fs.auto)return;
+  const cost=FACILITIES[i].autoCost;
+  if(S.gems<cost){showModal('ジェム不足',`💎${cost}必要です。ガチャや広告でゲット！`);return;}
+  showModal('自動化購入',`${FACILITIES[i].name}を自動化\n💎${cost} 消費\n転生後も永続します！`,ok=>{
+    if(!ok)return;
+    S.gems-=cost;
+    fs.auto=true;
+    updateUI();
+  },true);
+}
+
+function updateFacUI(){
+  FACILITIES.forEach((f,i)=>{
+    const fs=S.facilities[i];
+    const unlocked=S.totalGold>=f.cost||fs.auto||fs.prog>0||fs.lv>1;
+    const facEl=document.getElementById(`fac${i}`);
+    if(!facEl)return;
+    facEl.style.opacity=unlocked?'1':'0.5';
+
+    document.getElementById(`fac-lv${i}`).textContent=`Lv${fs.lv}`;
+    const inc=facIncome(i);
+    document.getElementById(`fac-desc${i}`).textContent=`${f.desc} | ${f.ivl}秒→🪙${fmt(inc)}`;
+    document.getElementById(`fac-prog${i}`).style.width=(fs.prog*100)+'%';
+
+    const cb=document.getElementById(`fac-col${i}`);
+    cb.disabled=fs.prog<1;
+    cb.textContent=`収穫 🪙${fmt(inc)}`;
+
+    const lb=document.getElementById(`fac-lvbtn${i}`);
+    const lc=facLvCost(i);
+    lb.textContent=`Lv↑ 🪙${fmt(lc)}`;
+    lb.disabled=S.gold<lc;
+
+    const ab=document.getElementById(`fac-autobtn${i}`);
+    const autoBadge=document.getElementById(`fac-auto${i}`);
+    if(fs.auto){
+      ab.className='auto-btn owned';ab.textContent='✅自動';
+      autoBadge.style.display='inline';
+    } else {
+      ab.className='auto-btn';ab.textContent=`自動💎${f.autoCost}`;
+      autoBadge.style.display='none';
+    }
+  });
+}
+
+// ==================== BATTLE ====================
+let battle={
+  active:false,
+  enemyHp:0,enemyMaxHp:0,
+  allyHp:0,allyMaxHp:0,
+  allyAtk:0,
+  enemyAtk:0,
+  tickAcc:0,
+  won:false,
+};
+
+function getStageEnemy(stage){
+  const hp=Math.floor(20*Math.pow(1.18,stage-1));
+  const atk=Math.floor(3*Math.pow(1.12,stage-1));
+  const eIdx=Math.floor((stage-1)/3)%ENEMIES.length;
+  return {hp,atk,name:`${ENEMIES[eIdx].name} Lv${stage}`,icon:ENEMIES[eIdx].icon,reward:Math.floor(10*Math.pow(1.2,stage-1))};
+}
+
+function getAllyStats(){
+  let atk=S.hero.atk;
+  let hp=S.hero.hp;
+  S.party.forEach(id=>{
+    if(id===null||id==='hero')return;
+    const c=S.chars.find(x=>x.id===id);
+    if(!c)return;
+    const db=CHARS_DB[id];
+    atk+=Math.floor(db.baseAtk*(1+(c.lv-1)*0.15));
+    hp+=Math.floor(db.baseHp*(1+(c.lv-1)*0.12));
+  });
+  atk=Math.floor(atk*S.prestigeMult);
+  hp=Math.floor(hp*S.prestigeMult);
+  return {atk,hp};
+}
+
+function initBattle(){
+  const en=getStageEnemy(S.currentStage);
+  const ally=getAllyStats();
+  battle.enemyHp=en.hp;battle.enemyMaxHp=en.hp;
+  battle.allyHp=ally.hp;battle.allyMaxHp=ally.hp;
+  battle.allyAtk=ally.atk;
+  battle.enemyAtk=en.atk;
+  battle.won=false;battle.active=false;
+  battle.tickAcc=0;
+  document.getElementById('b-stage').textContent=S.currentStage;
+  document.getElementById('enemy-icon').textContent=en.icon;
+  document.getElementById('enemy-name').textContent=en.name;
+  document.getElementById('next-btn').style.display='none';
+  document.getElementById('start-btn').textContent='▶ 開始';
+  document.getElementById('start-btn').className='battle-btn';
+  document.getElementById('start-btn').style.background='var(--green)';
+  document.getElementById('start-btn').style.color='#000';
+  document.getElementById('battle-log').textContent='バトルを開始しよう！';
+  updateBattleUI();
+}
+
+function toggleBattle(){
+  if(battle.won){nextStage();return;}
+  battle.active=!battle.active;
+  const btn=document.getElementById('start-btn');
+  if(battle.active){
+    btn.textContent='⏸ 一時停止';
+    btn.style.background='var(--red)';btn.style.color='#fff';
+  } else {
+    btn.textContent='▶ 再開';
+    btn.style.background='var(--green)';btn.style.color='#000';
+  }
+}
+
+function nextStage(){
+  S.currentStage++;
+  document.getElementById('next-btn').style.display='none';
+  initBattle();
+  updateUI();
+}
+
+function battleTick(dt){
+  if(!battle.active||battle.won)return;
+  battle.tickAcc+=dt;
+  const TICK=1.0;
+  if(battle.tickAcc<TICK)return;
+  battle.tickAcc=0;
+
+  // ally attacks
+  battle.enemyHp=Math.max(0,battle.enemyHp-battle.allyAtk);
+  // enemy attacks
+  battle.allyHp=Math.max(0,battle.allyHp-battle.enemyAtk);
+
+  const log=document.getElementById('battle-log');
+  log.textContent=`味方が ${battle.allyAtk} ダメージ！ 敵が ${battle.enemyAtk} ダメージ！`;
+
+  if(battle.enemyHp<=0){
+    battle.active=false;battle.won=true;
+    const en=getStageEnemy(S.currentStage);
+    addGold(en.reward);
+    if(S.currentStage>S.maxStage)S.maxStage=S.currentStage;
+    log.textContent=`🎉 ステージ${S.currentStage}クリア！ 🪙+${fmt(en.reward)}`;
+    document.getElementById('start-btn').style.display='none';
+    document.getElementById('next-btn').style.display='block';
+    updateUI();
+    return;
+  }
+  if(battle.allyHp<=0){
+    battle.active=false;
+    log.textContent='💀 敗北... もう一度挑戦しよう！';
+    const btn=document.getElementById('start-btn');
+    btn.textContent='▶ 再挑戦';btn.style.background='var(--green)';btn.style.color='#000';
+    battle.allyHp=battle.allyMaxHp;
+    battle.enemyHp=battle.enemyMaxHp;
+  }
+  updateBattleUI();
+}
+
+function updateBattleUI(){
+  const epct=Math.max(0,battle.enemyHp/battle.enemyMaxHp*100);
+  const apct=Math.max(0,battle.allyHp/battle.allyMaxHp*100);
+  document.getElementById('enemy-hp-fill').style.width=epct+'%';
+  document.getElementById('ally-hp-fill').style.width=apct+'%';
+  document.getElementById('enemy-hp-text').textContent=`${fmt(battle.enemyHp)}/${fmt(battle.enemyMaxHp)}`;
+  document.getElementById('ally-hp-text').textContent=`${fmt(battle.allyHp)}/${fmt(battle.allyMaxHp)}`;
+}
+
+function buildPartyGrid(){
+  const grid=document.getElementById('party-grid');
+  grid.innerHTML='';
+  for(let i=0;i<3;i++){
+    const id=S.party[i];
+    const div=document.createElement('div');
+    div.className='party-slot'+(id!==null?' filled':'');
+    if(id==='hero'){
+      div.innerHTML=`<div class="slot-icon">👑</div><div class="slot-name">主人公</div><div style="font-size:10px;color:var(--muted)">ATK:${S.hero.atk}</div>`;
+    } else if(id!==null){
+      const c=S.chars.find(x=>x.id===id);
+      const db=CHARS_DB[id];
+      div.innerHTML=`<div class="slot-icon">${db.icon}</div><div class="slot-name">${db.name}</div><div style="font-size:10px;color:var(--muted)">Lv${c?c.lv:1}</div>`;
+    } else {
+      div.innerHTML=`<div class="slot-icon" style="opacity:.3">＋</div><div class="slot-name" style="color:var(--muted)">空き</div>`;
+    }
+    div.onclick=()=>removeFromParty(i);
+    grid.appendChild(div);
+  }
+
+  // selectable list
+  const list=document.getElementById('party-select-list');
+  list.innerHTML='';
+  // hero
+  const heroDiv=document.createElement('div');
+  heroDiv.className='char-card';
+  const heroInParty=S.party.includes('hero');
+  heroDiv.innerHTML=`<span class="char-icon">👑</span>
+    <div class="char-info">
+      <div class="char-name">主人公</div>
+      <div class="char-stats">ATK:<span>${S.hero.atk}</span> HP:<span>${S.hero.hp}</span> Lv<span>${S.hero.lv}</span></div>
+    </div>
+    <button class="upgrade-btn" onclick="addToParty('hero')" ${heroInParty?'disabled':''}>
+      ${heroInParty?'編成中':'＋編成'}
+    </button>`;
+  list.appendChild(heroDiv);
+
+  S.chars.forEach(c=>{
+    const db=CHARS_DB[c.id];
+    const inParty=S.party.includes(c.id);
+    const d=document.createElement('div');
+    d.className='char-card';
+    d.innerHTML=`<span class="char-icon">${db.icon}</span>
+      <div class="char-info">
+        <div class="char-name">${db.name} <span class="${RARITY_CLASS[db.rarity]}">${RARITY_LABEL[db.rarity]}</span></div>
+        <div class="char-stats">ATK:<span>${Math.floor(db.baseAtk*(1+(c.lv-1)*0.15))}</span> HP:<span>${Math.floor(db.baseHp*(1+(c.lv-1)*0.12))}</span> Lv<span>${c.lv}</span></div>
+      </div>
+      <button class="upgrade-btn" onclick="addToParty(${c.id})" ${inParty?'disabled':''}>
+        ${inParty?'編成中':'＋編成'}
+      </button>`;
+    list.appendChild(d);
+  });
+}
+
+function addToParty(id){
+  const empty=S.party.indexOf(null);
+  if(empty===-1){showModal('満員','パーティは最大3人です。外してから追加してください。');return;}
+  if(S.party.includes(id))return;
+  S.party[empty]=id;
+  buildPartyGrid();
+  initBattle();
+}
+
+function removeFromParty(slot){
+  S.party[slot]=null;
+  buildPartyGrid();
+  initBattle();
+}
+
+// ==================== CHARS ====================
+function buildHeroCard(){
+  const el=document.getElementById('hero-card');
+  const upgCost=S.hero.upgCost;
+  el.innerHTML=`<div class="char-card">
+    <span class="char-icon">👑</span>
+    <div class="char-info">
+      <div class="char-name">主人公 Lv${S.hero.lv}</div>
+      <div class="char-stats">ATK:<span>${S.hero.atk}</span> HP:<span>${S.hero.hp}</span></div>
+    </div>
+    <button class="upgrade-btn" onclick="upgradeHero()" ${S.gold<upgCost?'disabled':''}>
+      強化 🪙${fmt(upgCost)}
+    </button>
+  </div>`;
+}
+
+function upgradeHero(){
+  if(S.gold<S.hero.upgCost){showModal('ゴールド不足',`🪙${fmt(S.hero.upgCost)}必要です。`);return;}
+  S.gold-=S.hero.upgCost;
+  S.hero.lv++;
+  S.hero.atk=Math.floor(15*Math.pow(1.12,S.hero.lv-1));
+  S.hero.hp=Math.floor(120*Math.pow(1.1,S.hero.lv-1));
+  S.hero.upgCost=Math.floor(100*Math.pow(1.6,S.hero.lv-1));
+  updateUI();
+}
+
+function buildCharList(){
+  const el=document.getElementById('char-list');
+  if(!S.chars.length){el.innerHTML='<div style="color:var(--muted);text-align:center;padding:16px;font-size:13px">ガチャを引いてキャラを入手しよう！</div>';return;}
+  el.innerHTML=S.chars.map(c=>{
+    const db=CHARS_DB[c.id];
+    const atk=Math.floor(db.baseAtk*(1+(c.lv-1)*0.15));
+    const hp=Math.floor(db.baseHp*(1+(c.lv-1)*0.12));
+    return `<div class="char-card">
+      <span class="char-icon">${db.icon}</span>
+      <div class="char-info">
+        <div class="char-name">${db.name} <span class="${RARITY_CLASS[db.rarity]}">${RARITY_LABEL[db.rarity]}</span> Lv${c.lv}</div>
+        <div class="char-stats">ATK:<span>${atk}</span> HP:<span>${hp}</span> 所持:<span>${c.count}</span></div>
+        <div class="char-stats" style="color:var(--green)">${db.effect}</div>
+      </div>
+      <button class="upgrade-btn" onclick="upgradeChar(${c.id})" ${S.gold<c.upgCost?'disabled':''}>
+        強化 🪙${fmt(c.upgCost)}
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function upgradeChar(id){
+  const c=S.chars.find(x=>x.id===id);
+  if(!c)return;
+  if(S.gold<c.upgCost){showModal('ゴールド不足',`🪙${fmt(c.upgCost)}必要です。`);return;}
+  S.gold-=c.upgCost;
+  c.lv++;
+  c.upgCost=Math.floor(c.upgCost*1.7);
+  updateUI();
+}
+
+// ==================== GACHA ====================
+function doGacha(times){
+  const cost=times===1?500:4500;
+  if(S.gold<cost){showModal('ゴールド不足',`🪙${fmt(cost)}必要です。`);return;}
+  S.gold-=cost;
+  const results=Array.from({length:times},()=>pullGacha());
+  results.forEach(db=>{
+    if(!db)return;
+    if(db.type==='gems'){S.gems+=db.val;return;}
+    let c=S.chars.find(x=>x.id===db.id);
+    if(c){c.count++;}
+    else{S.chars.push({id:db.id,count:1,lv:1,upgCost:200});}
+  });
+  renderGachaResult(results);
+  updateUI();
+}
+
+function pullGacha(){
+  const r=Math.random()*100;let cum=0;let rarity=1;
+  for(const g of GACHA_RATES){cum+=g.rate;if(r<cum){rarity=g.r;break;}}
+  // ジェム排出
+  if(Math.random()<0.2){
+    const gemVals={1:5,2:15,3:50,4:100};
+    return {id:-1,name:`💎×${gemVals[rarity]}`,icon:'💎',rarity,type:'gems',val:gemVals[rarity],effect:`ジェム+${gemVals[rarity]}`};
+  }
+  const pool=CHARS_DB.filter(c=>c.rarity===rarity);
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function renderGachaResult(results){
+  const box=document.getElementById('gacha-result');
+  box.style.display='block';
+  box.innerHTML=`<h4>🎰 結果</h4>`+results.map(db=>`
+    <div class="result-item">
+      <span style="font-size:18px">${db.icon}</span>
+      <span class="${RARITY_CLASS[db.rarity]}">${RARITY_LABEL[db.rarity]}</span>
+      <span>${db.name}</span>
+      <span style="color:var(--green);font-size:11px;margin-left:auto">${db.effect}</span>
+    </div>`).join('');
+
+  const gl=document.getElementById('gacha-char-list');
+  gl.innerHTML='';
+  S.chars.forEach(c=>{
+    const db=CHARS_DB[c.id];
+    gl.innerHTML+=`<div class="char-card">
+      <span class="char-icon">${db.icon}</span>
+      <div class="char-info">
+        <div class="char-name">${db.name} <span class="${RARITY_CLASS[db.rarity]}">${RARITY_LABEL[db.rarity]}</span></div>
+        <div class="char-stats">${db.effect} | 所持:<span>${c.count}</span> Lv<span>${c.lv}</span></div>
+      </div>
+    </div>`;
+  });
+}
+
+// ==================== PRESTIGE ====================
+function doPrestige(){
+  if(S.maxStage<PRESTIGE_MIN_STAGE){showModal('転生不可',`ステージ${PRESTIGE_MIN_STAGE}クリアが必要です。`);return;}
+  showModal('転生確認',`ゴールド・施設Lv・ステージをリセットします。\n施設の自動化・キャラ・主人公強化は引き継ぎ。\n転生ボーナスが増加します！`,ok=>{
+    if(!ok)return;
+    S.prestigeCount++;
+    S.prestigeMult=parseFloat((1.0+S.prestigeCount*0.2).toFixed(1));
+    S.gold=0;S.totalGold=0;S.currentStage=1;S.maxStage=0;
+    S.facilities=FACILITIES.map((_,i)=>({lv:1,prog:0,auto:S.facilities[i].auto}));
+    save();updateUI();
+    showModal('転生完了！',`✨ 転生ボーナス ×${S.prestigeMult}\nキャラと自動化は引き継がれています！`);
+  },true);
+}
+
+// ==================== MODAL ====================
+let _modalCb=null;
+function showModal(title,body,cb=null,cancel=false){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').textContent=body;
+  document.getElementById('modal-cancel').style.display=cancel?'inline-block':'none';
+  document.getElementById('modal-ok').textContent=cb?'確認':'OK';
+  _modalCb=cb;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+function closeModal(ok){
+  document.getElementById('modal-overlay').classList.remove('show');
+  if(_modalCb){_modalCb(ok);_modalCb=null;}
+}
+
+// ==================== FLOAT ====================
+function showFloat(x,y,text,color='#f5c842'){
+  const el=document.createElement('div');
+  el.className='float-text';
+  el.style.cssText=`left:${x}px;top:${y}px;color:${color};`;
+  el.textContent=text;
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),900);
+}
+
+function fmt(n){
+  if(n>=1e12)return(n/1e12).toFixed(1)+'T';
+  if(n>=1e9) return(n/1e9).toFixed(1)+'B';
+  if(n>=1e6) return(n/1e6).toFixed(1)+'M';
+  if(n>=1e3) return(n/1e3).toFixed(1)+'K';
+  return Math.floor(n).toString();
+}
+
+// ==================== UI UPDATE ====================
+function updateUI(){
+  document.getElementById('disp-gold').textContent=fmt(S.gold);
+  document.getElementById('disp-gem').textContent=S.gems;
+  document.getElementById('disp-stage').textContent=S.currentStage;
+  document.getElementById('disp-maxstage').textContent=S.maxStage;
+  document.getElementById('disp-mult').textContent='×'+S.prestigeMult.toFixed(1);
+  document.getElementById('disp-prestige').textContent=S.prestigeCount;
+  document.getElementById('disp-tappower').textContent=fmt(tapPower()*buffMult());
+
+  // buff
+  const now=Date.now();
+  const bb=document.getElementById('buff-bar');
+  if(now<S.buffEnd){
+    bb.classList.remove('hidden');
+    const rem=Math.ceil((S.buffEnd-now)/1000);
+    document.getElementById('buff-timer').textContent=`${String(Math.floor(rem/60)).padStart(2,'0')}:${String(rem%60).padStart(2,'0')}`;
+  } else bb.classList.add('hidden');
+
+  // prestige
+  const canPrestige=S.maxStage>=PRESTIGE_MIN_STAGE;
+  document.getElementById('prestige-btn').disabled=!canPrestige;
+  document.getElementById('cond-stage').textContent=canPrestige?`✓ クリア済(${S.maxStage})`:`✗ 最高Stg${S.maxStage}`;
+  document.getElementById('cond-stage').className=canPrestige?'cond-ok':'cond-ng';
+  document.getElementById('prestige-bonus-text').textContent=`次の転生ボーナス: ×${(1.0+(S.prestigeCount+1)*0.2).toFixed(1)}`;
+  document.getElementById('prestige-unlock-hint').textContent=canPrestige?'✨ 転生解禁中！':`Stage${PRESTIGE_MIN_STAGE}クリアで転生解禁`;
+
+  // tab-specific
+  const activeTab=document.querySelector('.page.active').id.replace('page-','');
+  if(activeTab==='facility') updateFacUI();
+  if(activeTab==='chars'){buildHeroCard();buildCharList();}
+  if(activeTab==='battle') buildPartyGrid();
+
+  save();
+}
+
+// ==================== TABS ====================
+const TAB_NAMES=['tap','facility','battle','chars','gacha','prestige'];
+function switchTab(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById(`page-${name}`).classList.add('active');
+  document.querySelectorAll('.tab')[TAB_NAMES.indexOf(name)].classList.add('active');
+  if(name==='facility') buildFacilities();
+  if(name==='gacha'){renderGachaResult([]);document.getElementById('gacha-result').style.display='none';}
+  if(name==='chars'){buildHeroCard();buildCharList();}
+  if(name==='battle') buildPartyGrid();
+  if(name==='prestige') updateUI();
+}
+
+// ==================== GAME LOOP ====================
+let lastTick=Date.now();
+function gameLoop(){
+  const now=Date.now();
+  const dt=(now-lastTick)/1000;
+  lastTick=now;
+
+  // facilities
+  FACILITIES.forEach((f,i)=>{
+    const fs=S.facilities[i];
+    const unlocked=S.totalGold>=f.cost||fs.auto||fs.prog>0||fs.lv>1;
+    if(!unlocked)return;
+    if(fs.prog<1) fs.prog=Math.min(1,fs.prog+dt/f.ivl);
+    if(fs.auto&&fs.prog>=1){addGold(facIncome(i));fs.prog=0;}
+  });
+
+  // battle
+  battleTick(dt);
+
+  updateUI();
+}
+
+// ==================== INIT ====================
+load();
+initBattle();
+buildFacilities();
+buildHeroCard();
+buildCharList();
+updateUI();
+setInterval(gameLoop,100);
+</script>
+</body>
+</html>
